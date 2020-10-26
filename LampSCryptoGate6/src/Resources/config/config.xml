@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Basic Configuration</title>
+        <title lang="de-DE">Grundeinstellungen</title>
+
+        <input-field>
+            <name>apiToken</name>
+            <copyable>true</copyable>
+            <label>Merchant Api Token</label>
+            <label lang="de-DE">Merchant Api Token</label>
+            <helpText>You will find your Api Key in the CryptoPanel Backend Area.</helpText>
+            <helpText lang="de-DE">Ihren Api Schlüssel finden Sie im Backend Bereich von CryptoPanel.</helpText>
+        </input-field>
+
+        <input-field>
+            <name>apiUrl</name>
+            <copyable>true</copyable>
+            <label>CryptoGate Url</label>
+            <label lang="de-DE">CryptoGate URL</label>
+            <helpText>You will find your CryptoGate URL in the CryptoPanel Backend Area.</helpText>
+            <helpText lang="de-DE">Ihre CryptoGate URL finden Sie im Backend Bereich von CryptoPanel.</helpText>
+        </input-field>
+
+        <input-field type="bool">
+            <name>transmitCustomerData</name>
+            <label>Transmit customer data</label>
+            <label lang="de-DE">Kundendaten der Bestellung an CryptoPanel übertragen</label>
+            <helpText>Benötigt unter Umständen einen Auftragsdatenverarbeitungsvertrag (=AVV) von Deinem Dienstleister. Solltest Du das CryptoPanel nutzen, kannst Du den AVV bei www.cryptopanel.de abschließen.</helpText>
+            <helpText lang="de-DE">Benötigt unter Umständen einen Auftragsdatenverarbeitungsvertrag (=AVV) von Deinem Dienstleister. Solltest Du das CryptoPanel nutzen, kannst Du den AVV bei www.cryptopanel.de abschließen.</helpText>
+        </input-field>
+
+    </card>
+</config>

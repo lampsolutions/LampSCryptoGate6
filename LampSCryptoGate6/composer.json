@@ -1,0 +1,31 @@
+{
+    "name": "lampsolutions/lampscryptogate6",
+    "description": "www.cryptopanel.de Payment Plugin for Shopware 6",
+    "version": "v1.0.0",
+    "type": "shopware-platform-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LAMP solutions GmbH"
+        }
+    ],
+    "require": {
+        "shopware/core": "*"
+    },
+    "extra": {
+        "shopware-plugin-class": "Lampsolutions\\LampSCryptoGate6\\LampSCryptoGate6",
+        "label": {
+            "de-DE": "CryptoPanel Payment Plugin",
+            "en-GB": "CryptoPanel Payment Plugin"
+        },
+        "description": {
+            "de-DE": "Integriert CryptoPanel als Zahlungsschnittstelle für Shopware 6",
+            "en-GB": "Integrates CryptoPanel as Payment Processor for Shopware 6"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Lampsolutions\\LampSCryptoGate6\\": "src/"
+        }
+    }
+}
