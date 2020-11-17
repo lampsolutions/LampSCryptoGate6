@@ -1,0 +1,11 @@
+<sw-card class="sw-card--grid"
+         :title="$tc('lamps-cryptogate.settingForm.credentials.cardTitle')">
+
+    <sw-container>
+        <sw-button-process v-model="isTestLiveSuccessful"
+                           @click="onTest()">
+            {{ $tc('lamps-cryptogate.settingForm.testLive') }}
+        </sw-button-process>
+
+    </sw-container>
+</sw-card>

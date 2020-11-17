@@ -1,0 +1,8 @@
+{
+  "name": "lampscrpytogate",
+  "version": "1.0.0",
+  "description": "Administration for LampSCryptoGate",
+  "main": "index.js",
+  "author": "LAMP solutions GmbH",
+  "license": "MIT"
+}

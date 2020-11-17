@@ -12,6 +12,9 @@
     "require": {
         "shopware/core": "*"
     },
+    "require-dev": {
+        "shopware/plugin-dev-tools": "*"
+    },
     "extra": {
         "shopware-plugin-class": "Lampsolutions\\LampSCryptoGate6\\LampSCryptoGate6",
         "label": {

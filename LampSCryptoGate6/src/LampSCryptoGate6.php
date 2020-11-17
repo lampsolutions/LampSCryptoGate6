@@ -67,31 +67,31 @@ class LampSCryptoGate6 extends Plugin
             [
                 'handlerIdentifier' => CryptoPayment::class,
                 'name' => 'Kryptowährungen',
-                'description' => 'Jetzt mit Kryptowährungen bezahlen',
+                'description' => 'Pay now securely and encrypted with Bitcoin, Bitcoin Cash, Dash or Litecoin.',
                 'pluginId' => $pluginId,
             ],
             [
                 'handlerIdentifier' => CryptoPaymentBtc::class,
                 'name' => 'Bitcoin',
-                'description' => 'Jetzt mit Bitcoin bezahlen',
+                'description' => 'Pay securely and encrypted with Bitcoin now.',
                 'pluginId' => $pluginId,
             ],
             [
                 'handlerIdentifier' => CryptoPaymentBch::class,
                 'name' => 'Bitcoin Cash',
-                'description' => 'Jetzt mit Bitcoin Cash bezahlen',
+                'description' => 'Pay securely and encrypted with Bitcoin Cash now.',
                 'pluginId' => $pluginId,
             ],
             [
                 'handlerIdentifier' => CryptoPaymentLtc::class,
                 'name' => 'Litecoin',
-                'description' => 'Jetzt mit Litecoin bezahlen',
+                'description' => 'Pay securely and encrypted with Litecoin now.',
                 'pluginId' => $pluginId,
             ],
             [
                 'handlerIdentifier' => CryptoPaymentDash::class,
                 'name' => 'Dash',
-                'description' => 'Jetzt mit Dash bezahlen',
+                'description' => 'Pay securely and encrypted with Dash now.',
                 'pluginId' => $pluginId,
             ]
         ];

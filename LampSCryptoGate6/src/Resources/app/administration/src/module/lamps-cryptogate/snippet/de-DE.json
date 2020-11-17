@@ -1,0 +1,15 @@
+{
+  "lamps-cryptogate" : {
+    "general": {
+      "mainMenuItemGeneral": "LampSCryptoGate6",
+      "descriptionTextModule": "Einstellungen für LampSCryptoGate6"
+    },
+    "settingForm": {
+      "credentials" : {
+        "cardTitle" : "Einstellungen"
+      },
+      "testLive": "Test"
+    }
+  }
+
+}
