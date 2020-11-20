@@ -50,7 +50,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
                                 OrderTransactionStateHandler $transactionStateHandler,
                                 RouterInterface $router,
                                 EntityRepositoryInterface $currencyRepository,
-                                LoggerInterface $logger)
+                                \Monolog\Logger $logger)
     {
 
         $this->transactionStateHandler = $transactionStateHandler;
@@ -263,7 +263,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         if($this->isValidToken($paymentResponse['token'], $paymentToken)) {
             if($this->validatePayment($paymentResponse)) {
                 if($transaction->getOrderTransaction()->getStateMachineState()->getTechnicalName()=="open") {
-                    $this->transactionStateHandler->pay($transaction->getOrderTransaction()->getId(), $context);
+                    $this->transactionStateHandler->paid($transaction->getOrderTransaction()->getId(), $context);
                 }
                 return;
             }
