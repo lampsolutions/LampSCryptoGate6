@@ -6,8 +6,10 @@
     },
     "settingForm": {
       "credentials" : {
-        "cardTitle" : "Einstellungen"
+        "cardTitle" : "Einstellungen testen"
       },
+      "messageSuccess": "Die Zugangsdaten wurden erfolgreich getestet",
+      "errorMessage": "Die Zugangsdaten konnten nicht erfolgreich getestet werden. Siehe Logfiles für Details",
       "testLive": "Test"
     }
   }

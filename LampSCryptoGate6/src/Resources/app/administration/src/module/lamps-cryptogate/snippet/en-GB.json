@@ -6,8 +6,11 @@
     },
     "settingForm": {
       "credentials" : {
-        "cardTitle" : "Settings"
+        "cardTitle" : "Check settings"
       },
+      "messageSuccess": "Your settings have been validated",
+      "errorMessage": "Your credentials could not be tested successfully. Please check logfiles for details",
+
       "testLive": "Test"
     }
   }

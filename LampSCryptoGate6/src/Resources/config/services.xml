@@ -5,8 +5,15 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+        <service id="Lampsolutions\LampSCryptoGate6\Util\Logger" class="Monolog\Logger">
+            <factory service="Shopware\Core\Framework\Log\LoggerFactory" method="createRotating"/>
+            <argument type="string">lamp_crypto</argument>
+        </service>
+
         <service id="Lampsolutions\LampSCryptoGate6\Storefront\Controller\CryptoGateCallbackController" public="true">
             <argument type="service" id="Shopware\Core\Checkout\Payment\PaymentService"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
+
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
@@ -16,6 +23,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="currency.repository"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBtc">
@@ -23,6 +31,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="currency.repository"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentLtc">
@@ -30,6 +39,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="currency.repository"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentDash">
@@ -37,6 +47,7 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="currency.repository"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBch">
@@ -44,8 +55,14 @@
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
             <argument type="service" id="currency.repository"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
             <tag name="shopware.payment.method.async" />
         </service>
+        <service id="Lampsolutions\LampSCryptoGate6\Controller\CredentialsController" public="true">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Util\Logger"/>
+        </service>
+
 
 
     </services>

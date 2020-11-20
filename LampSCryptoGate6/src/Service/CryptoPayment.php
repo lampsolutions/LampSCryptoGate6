@@ -46,13 +46,18 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
      */
     private $currencyRepository;
 
-    public function __construct(SystemConfigService $systemConfigService, OrderTransactionStateHandler $transactionStateHandler, RouterInterface $router, EntityRepositoryInterface $currencyRepository)
+    public function __construct(SystemConfigService $systemConfigService,
+                                OrderTransactionStateHandler $transactionStateHandler,
+                                RouterInterface $router,
+                                EntityRepositoryInterface $currencyRepository,
+                                LoggerInterface $logger)
     {
 
         $this->transactionStateHandler = $transactionStateHandler;
         $this->systemConfigService = $systemConfigService;
         $this->router = $router;
         $this->currencyRepository = $currencyRepository;
+        $this->logger=$logger;
     }
 
     /**
@@ -118,8 +123,17 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
 
-        if(empty($apiUrl)) throw new \Exception('[LampsCryptoGate6] Missing Api URL');
-        if(empty($apiKey)) throw new \Exception('[LampsCryptoGate6] Missing Api Token');
+        if(empty($apiUrl)){
+            $this->logger->error('[LampSCryptogate validatePaypent] ApiURL missing');
+            return false;
+
+        }
+        if(empty($apiKey)){
+            $this->logger->error('[LampSCryptogate validatePaypent] ApiKey missing');
+            return false;
+
+        }
+
 
         $parameters = [
             'uuid' => $paymentResponse['transactionId'],
@@ -144,7 +158,8 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
 
             return false;
         } catch (GuzzleException $e) {
-            throw new \Exception('[CryptoGate] Gateway Api Error');
+            $this->logger->error('[LampSCryptogate validatePaypent] ApiURL missing', $e->getMessage());
+
             return false;
         }
     }
@@ -154,8 +169,18 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
         $transmitCustomerData = (bool) $this->systemConfigService->get('LampSCryptoGate6.config.transmitCustomerData');
 
-        if(empty($apiUrl)) throw new \Exception('[LampsCryptoGate6] Missing Api URL');
-        if(empty($apiKey)) throw new \Exception('[LampsCryptoGate6] Missing Api Token');
+
+        if(empty($apiUrl)){
+            $this->logger->error('[LampsCryptoGate6] ApiURL missing');
+            return false;
+
+        }
+        if(empty($apiKey)){
+            $this->logger->error('[LampsCryptoGate6] ApiKey missing');
+            return false;
+
+        }
+
 
         $parameters['token'] = $this->createPaymentToken($parameters);
         $parameters['api_key'] = $apiKey;
@@ -184,7 +209,8 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
 
             return json_decode($response->getBody()->getContents(), true)['payment_url'];
         }catch (GuzzleException $e) {
-            throw new \Exception('[CryptoGate] Gateway Api Error');
+            $this->logger->error('[LampsCryptoGate6]', [$e->getMessage()]);
+            return false;
 
             return false;
         }

@@ -1,34 +1,22 @@
 const ApiService = Shopware.Classes.ApiService;
 
+
 class LampsCryptogateApiCredentialsService extends ApiService {
     constructor(httpClient, loginService, apiEndpoint = 'cryptogate') {
         super(httpClient, loginService, apiEndpoint);
     }
 
-    validateApiCredentials(clientId, clientSecret, sandboxActive) {
+    checkCredentials(clientId, clientSecret, sandboxActive) {
         const headers = this.getBasicHeaders();
 
         return this.httpClient
             .get(
-                `_action/${this.getApiBasePath()}/validate-api-credentials`,
+                `_action/${this.getApiBasePath()}/checkCredentials`,
                 {
-                    params: { token },
+                    params: { },
                     headers: headers
                 }
             )
-            .then((response) => {
-                return ApiService.handleResponse(response);
-            });
-    }
-
-    getApiCredentials(authCode, sharedId, nonce, sandboxActive, additionalParams = {}, additionalHeaders = {}) {
-        const params = additionalParams;
-        const headers = this.getBasicHeaders(additionalHeaders);
-
-        return this.httpClient
-            .post(`_action/${this.getApiBasePath()}/get-api-credentials`,
-                { token },
-                { params, headers })
             .then((response) => {
                 return ApiService.handleResponse(response);
             });
