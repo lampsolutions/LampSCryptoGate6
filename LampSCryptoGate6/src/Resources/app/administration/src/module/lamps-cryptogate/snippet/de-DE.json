@@ -2,7 +2,9 @@
   "lamps-cryptogate" : {
     "general": {
       "mainMenuItemGeneral": "LampSCryptoGate6",
-      "descriptionTextModule": "Einstellungen für LampSCryptoGate6"
+      "descriptionTextModule": "Einstellungen für LampSCryptoGate6",
+      "descriptionTextModuleTest": "Einstellungen für LampSCryptoGate6 testen"
+
     },
     "settingForm": {
       "credentials" : {

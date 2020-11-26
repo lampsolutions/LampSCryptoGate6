@@ -32,5 +32,11 @@
             <helpText lang="de-DE">Benötigt unter Umständen einen Auftragsdatenverarbeitungsvertrag (=AVV) von Deinem Dienstleister. Solltest Du das CryptoPanel nutzen, kannst Du den AVV bei www.cryptopanel.de abschließen.</helpText>
         </input-field>
 
+        <input-field type="bool">
+            <name>validated</name>
+            <label>You can test your credentials under settings -> plugins -> LampSCryptoGate</label>
+            <label lang="de-DE">>Die Zugangsdaten können unter Einstellungen -> plugins -> LampSCryptoGate gestestet werden.</label>
+            <disabled>true</disabled>
+        </input-field>
     </card>
 </config>

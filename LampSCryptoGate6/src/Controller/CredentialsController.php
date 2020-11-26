@@ -37,8 +37,7 @@ class CredentialsController extends AbstractController
     {
         $result=$this->createPaymentUrl();
         if($result){
-            return new JsonResponse(["message" => $result, "credentialsValid" => true]);
-
+            return new JsonResponse($result);
         }
         else{
             return new JsonResponse(["message" => "error", "credentialsValid" => false]);
@@ -94,8 +93,19 @@ class CredentialsController extends AbstractController
                 $apiUrl.$this::$api_endpoint_create,
                 ['form_params' => $parameters]
             );
-            return json_decode($response->getBody()->getContents(), true)['payment_url'];
-        }catch (GuzzleException $e) {
+
+            $url=json_decode($response->getBody()->getContents(), true)['payment_url'];
+
+            if(filter_var($url,FILTER_VALIDATE_URL)){
+                $this->systemConfigService->set('LampSCryptoGate6.config.validated',true);
+                return ["message" => "success", "credentialsValid" => true];
+
+            }
+
+            return $url;
+        }catch (\Exception $e) {
+            $this->systemConfigService->set('LampSCryptoGate6.config.validated',false);
+
             $this->logger->error('[LampsCryptoGate6]', [$e->getMessage()]);
 
             return false;

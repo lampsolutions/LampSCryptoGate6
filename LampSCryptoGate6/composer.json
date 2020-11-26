@@ -3,7 +3,7 @@
     "description": "www.cryptopanel.de Payment Plugin for Shopware 6",
     "version": "v1.0.0",
     "type": "shopware-platform-plugin",
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "LAMP solutions GmbH"

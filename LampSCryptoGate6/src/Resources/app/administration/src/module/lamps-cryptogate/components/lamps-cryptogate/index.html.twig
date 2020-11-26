@@ -1,12 +1,32 @@
-<sw-card class="sw-card--grid"
-         :title="$tc('lamps-cryptogate.settingForm.credentials.cardTitle')">
+<sw-page class="lamps-cryprogate">
 
-    <sw-container>
-        <sw-button-process v-model="isTestLiveSuccessful"
-                           @click="onTest()">
-            {{ $tc('lamps-cryptogate.settingForm.testLive') }}
-        </sw-button-process>
-        <div id="result"></div>
+    <template #smart-bar-header>
+        <h2>
+            {{ $tc('sw-settings.index.title') }}
+            <sw-icon name="small-arrow-medium-right" small></sw-icon>
+            {{ $tc('lamps-cryptogate.general.descriptionTextModuleTest') }}
+        </h2>
+    </template>
 
-    </sw-container>
-</sw-card>
+    <template #content>
+        <sw-card-view class="sw-card-view__content">
+            <sw-card class="sw-card"
+                     :title="$tc('lamps-cryptogate.settingForm.credentials.cardTitle')">
+
+                <sw-container class="sw-card sw-card--grid">
+                    <div class="sw-card__content">
+                        <sw-button-process v-model="isTestLiveSuccessful"
+                                           @click="onTest()">
+                            {{ $tc('lamps-cryptogate.settingForm.testLive') }}
+                        </sw-button-process>
+
+                    </div>
+
+                </sw-container>
+                <div>
+                    <div id="result"></div>
+                </div>
+            </sw-card>
+        </sw-card-view>
+    </template>
+</sw-page>
