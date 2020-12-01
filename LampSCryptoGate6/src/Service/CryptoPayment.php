@@ -155,6 +155,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             if($verify['token'] == $paymentResponse['token'] && !empty($paymentResponse['token']) && !empty($verify['token'])) {
                 return true;
             }
+            $this->logger->error('[LampSCryptogate validatePaypent] wrong token');
 
             return false;
         } catch (GuzzleException $e) {
@@ -211,8 +212,6 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         }catch (GuzzleException $e) {
             $this->logger->error('[LampsCryptoGate6]', [$e->getMessage()]);
             return false;
-
-            return false;
         }
     }
 
@@ -228,6 +227,12 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         try {
             $paymentData = $this->getCryptoGatePaymentData($transaction, $salesChannelContext);
             $redirectUrl = $this->createPaymentUrl($paymentData, $salesChannelContext->getContext()->getVersionId());
+            if(!$redirectUrl){
+                throw new AsyncPaymentProcessException(
+                    $transaction->getOrderTransaction()->getId(),
+                    'An error occurred during the communication with external payment gateway' . PHP_EOL
+                );
+            }
             if(!empty($this->currency)) $redirectUrl.='/'.$this->currency;
 
         } catch (\Exception $e) {
