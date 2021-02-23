@@ -9,9 +9,11 @@ use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
+use Shopware\Core\System\Currency\CurrencyCollection;
 use Shopware\Core\System\Currency\CurrencyEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -40,6 +42,11 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
      * @var RouterInterface
      */
     private $router;
+
+    /**
+     * @var \Monolog\Logger
+     */
+    private $logger;
 
     /**
      * @var EntityRepositoryInterface
@@ -72,20 +79,39 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         return sha1(implode('|', $payment_data));
     }
 
+    private function getCurrency(string $currencyId, Context $context) {
+        $criteria = new Criteria([$currencyId]);
+
+        /** @var CurrencyCollection $currencyCollection */
+        $currencyCollection = $this->currencyRepository->search($criteria, $context);
+
+        $currency = $currencyCollection->get($currencyId);
+        if ($currency === null) {
+            return false;
+        }
+
+        return $currency;
+    }
 
     private function getCryptoGatePaymentData(AsyncPaymentTransactionStruct $transaction, SalesChannelContext $salesChannelContext) {
 
         $orderEntity = $transaction->getOrder();
 
         try {
-            $currencyResult = $this->currencyRepository->search(new Criteria([$orderEntity->getCurrencyId()]), $salesChannelContext->getContext());
-            /** @var CurrencyEntity $currencyEntity */
-            $currencyEntity = array_pop($currencyResult->getElements());
-            $currencyCode = $currencyEntity->getShortName();
+            $currencyEntity = $orderEntity->getCurrency();
+            if ($currencyEntity === null) {
+                $currencyEntity = $this->getCurrency($orderEntity->getCurrencyId(), $salesChannelContext->getContext());
+            }
+            $currencyCode = $currencyEntity->getIsoCode();
         } catch (\Exception $e) {
-            $currencyCode = 'EUR';
+            $this->logger->error('[LampSCryptogate getCryptoGatePaymentData] '.$e->getMessage());
+            return false;
         }
 
+        if(!in_array($currencyCode, ['EUR', 'USD', 'CHF'])) {
+            $this->logger->error('[LampSCryptogate getCryptoGatePaymentData] Unsupported currency code '.$currencyCode);
+            return false;
+        }
 
         if(!empty($transaction->getReturnUrl())) {
             parse_str(parse_url($transaction->getReturnUrl(), PHP_URL_QUERY), $returnQuery);
@@ -226,6 +252,13 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
 
         try {
             $paymentData = $this->getCryptoGatePaymentData($transaction, $salesChannelContext);
+            if(!$paymentData) {
+                throw new AsyncPaymentProcessException(
+                    $transaction->getOrderTransaction()->getId(),
+                    'An error occurred during the communication with external payment gateway' . PHP_EOL
+                );
+            }
+
             $redirectUrl = $this->createPaymentUrl($paymentData, $salesChannelContext->getContext()->getVersionId());
             if(!$redirectUrl){
                 throw new AsyncPaymentProcessException(
