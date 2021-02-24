@@ -69,6 +69,7 @@ class CredentialsController extends AbstractController
             'email' => "test@example.com",
             'return_url' => "__not_set__",
             'callback_url' => "__not_set__",
+            'ipn_url' => "__not_set__",
             'cancel_url' => "__not_set__",
             'seller_name' => "",
             'memo' => '' . $_SERVER['SERVER_NAME']

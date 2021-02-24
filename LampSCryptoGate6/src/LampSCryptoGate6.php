@@ -7,6 +7,7 @@ use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBch;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBtc;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentDash;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentLtc;
+use Lampsolutions\LampSCryptoGate6\Service\CustomFields;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -19,32 +20,36 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 
-class LampSCryptoGate6 extends Plugin
-{
-    public function install(InstallContext $context): void
-    {
+class LampSCryptoGate6 extends Plugin {
+
+    public function install(InstallContext $context): void {
+        //(new CustomFields($this->container))->install($context);
         $this->addPaymentMethods($context->getContext());
     }
 
-    public function uninstall(UninstallContext $context): void
-    {
+    public function uninstall(UninstallContext $context): void {
+        //(new CustomFields($this->container))->uninstall($context);
         $this->setPaymentMethodsIsActive(false, $context->getContext());
+        parent::uninstall($context);
+    }
+    public function update(Plugin\Context\UpdateContext $context): void {
+        //(new CustomFields($this->container))->update($context);
+        parent::update($context);
     }
 
-    public function activate(ActivateContext $context): void
-    {
+    public function activate(ActivateContext $context): void {
+        //(new CustomFields($this->container))->activate($context);
         $this->setPaymentMethodsIsActive(true, $context->getContext());
         parent::activate($context);
     }
 
-    public function deactivate(DeactivateContext $context): void
-    {
+    public function deactivate(DeactivateContext $context): void {
+        //(new CustomFields($this->container))->deactivate($context);
         $this->setPaymentMethodsIsActive(false, $context->getContext());
         parent::deactivate($context);
     }
 
-    private function getConfig()
-    {
+    private function getConfig() {
         $shop = $shop = $this->container->get('shop');
         $configReader = $this->container->get('shopware.plugin.cached_config_reader');
 
