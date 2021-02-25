@@ -7,7 +7,6 @@ use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBch;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBtc;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentDash;
 use Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentLtc;
-use Lampsolutions\LampSCryptoGate6\Service\CustomFields;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;

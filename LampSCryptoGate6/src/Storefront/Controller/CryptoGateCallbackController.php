@@ -39,12 +39,7 @@ class CryptoGateCallbackController extends StoreFrontController
     public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response {
 
         $paymentToken = $request->get('_sw_payment_token');
-
-        $paymentTokenStruct = $this->paymentService->finalizeTransaction($paymentToken, $request, $salesChannelContext);
-
-        //if ($paymentTokenStruct->getFinishUrl()) {
-            //return new RedirectResponse($paymentTokenStruct->getFinishUrl());
-        //}
+        $this->paymentService->finalizeTransaction($paymentToken, $request, $salesChannelContext);
 
         return new JsonResponse(['status' => 'OK'], Response::HTTP_OK);
     }
