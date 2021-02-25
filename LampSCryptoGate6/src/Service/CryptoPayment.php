@@ -264,6 +264,11 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         }
     }
 
+    public function buildPaymentUrlByUuid($uuid) {
+        $apiUrl = rtrim($this->systemConfigService->get('LampSCryptoGate6.config.apiUrl'), "/");
+        return $apiUrl.'/payments/'.urlencode($uuid);
+    }
+
     /**
      * @throws AsyncPaymentProcessException
      */
@@ -300,8 +305,18 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             );
         }
 
-        // Redirect to external gateway
-        return new RedirectResponse($cryptoPayment['payment_url']);
+
+        $payIframe = $this->systemConfigService->get('LampSCryptoGate6.config.payIframe');
+
+        if($payIframe) {
+            // Redirect to external gateway
+            return new RedirectResponse(
+                $this->router->generate('frontend.checkout.gate', ['uuid' => $cryptoPayment['uuid']], 0)
+            );
+        } else {
+            // Redirect to external gateway
+            return new RedirectResponse($cryptoPayment['payment_url']);
+        }
     }
 
     /**

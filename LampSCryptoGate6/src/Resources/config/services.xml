@@ -19,6 +19,14 @@
             </call>
         </service>
 
+        <service id="Lampsolutions\LampSCryptoGate6\Storefront\Controller\CryptoGateController" public="true">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\CryptoPayment"/>
+
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
         <service id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService">
             <argument type="service" id="Shopware\Core\Checkout\Payment\Cart\Token\JWTFactoryV2"/>
             <argument type="service" id="logger"/>
