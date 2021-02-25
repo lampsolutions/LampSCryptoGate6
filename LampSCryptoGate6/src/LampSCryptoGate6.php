@@ -23,30 +23,49 @@ use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 class LampSCryptoGate6 extends Plugin {
 
     public function install(InstallContext $context): void {
-        //(new CustomFields($this->container))->install($context);
         $this->addPaymentMethods($context->getContext());
+        $this->enableAfterOrderEnabled($context->getContext());
     }
 
     public function uninstall(UninstallContext $context): void {
-        //(new CustomFields($this->container))->uninstall($context);
         $this->setPaymentMethodsIsActive(false, $context->getContext());
         parent::uninstall($context);
     }
     public function update(Plugin\Context\UpdateContext $context): void {
-        //(new CustomFields($this->container))->update($context);
+        $this->enableAfterOrderEnabled($context->getContext());
         parent::update($context);
     }
 
     public function activate(ActivateContext $context): void {
-        //(new CustomFields($this->container))->activate($context);
         $this->setPaymentMethodsIsActive(true, $context->getContext());
+        $this->enableAfterOrderEnabled($context->getContext());
         parent::activate($context);
     }
 
     public function deactivate(DeactivateContext $context): void {
-        //(new CustomFields($this->container))->deactivate($context);
         $this->setPaymentMethodsIsActive(false, $context->getContext());
         parent::deactivate($context);
+    }
+
+    private function enableAfterOrderEnabled(Context $context) {
+        /** @var EntityRepositoryInterface $paymentRepository */
+        $paymentRepository = $this->container->get('payment_method.repository');
+
+        $paymentMethodIds = $this->getPaymentMethodIds();
+
+        // Payment does not even exist, so nothing to (de-)activate here
+        if (!$paymentMethodIds) {
+            return;
+        }
+
+        foreach($paymentMethodIds as $paymentMethodId) {
+            $paymentMethod = [
+                'id' => $paymentMethodId,
+                'afterOrderEnabled' => true,
+            ];
+
+            $paymentRepository->update([$paymentMethod], $context);
+        }
     }
 
     private function getConfig() {
@@ -74,30 +93,35 @@ class LampSCryptoGate6 extends Plugin {
                 'name' => 'Kryptowährungen',
                 'description' => 'Pay now securely and encrypted with Bitcoin, Bitcoin Cash, Dash or Litecoin.',
                 'pluginId' => $pluginId,
+                'afterOrderEnabled' => true
             ],
             [
                 'handlerIdentifier' => CryptoPaymentBtc::class,
                 'name' => 'Bitcoin',
                 'description' => 'Pay securely and encrypted with Bitcoin now.',
                 'pluginId' => $pluginId,
+                'afterOrderEnabled' => true
             ],
             [
                 'handlerIdentifier' => CryptoPaymentBch::class,
                 'name' => 'Bitcoin Cash',
                 'description' => 'Pay securely and encrypted with Bitcoin Cash now.',
                 'pluginId' => $pluginId,
+                'afterOrderEnabled' => true
             ],
             [
                 'handlerIdentifier' => CryptoPaymentLtc::class,
                 'name' => 'Litecoin',
                 'description' => 'Pay securely and encrypted with Litecoin now.',
                 'pluginId' => $pluginId,
+                'afterOrderEnabled' => true
             ],
             [
                 'handlerIdentifier' => CryptoPaymentDash::class,
                 'name' => 'Dash',
                 'description' => 'Pay securely and encrypted with Dash now.',
                 'pluginId' => $pluginId,
+                'afterOrderEnabled' => true
             ]
         ];
 
