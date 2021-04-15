@@ -17,10 +17,12 @@ use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
+use Shopware\Core\Framework\Plugin\Context\UpdateContext;
 use Shopware\Core\Framework\Plugin\Util\PluginIdProvider;
 
 class LampSCryptoGate6 extends Plugin
 {
+
     public function install(InstallContext $context): void
     {
         $this->addPaymentMethods($context->getContext());
@@ -31,8 +33,7 @@ class LampSCryptoGate6 extends Plugin
         $this->setPaymentMethodsIsActive(false, $context->getContext());
     }
 
-    public function activate(ActivateContext $context): void
-    {
+    public function activate(ActivateContext $context): void {
         $this->setPaymentMethodsIsActive(true, $context->getContext());
         parent::activate($context);
     }
@@ -41,6 +42,26 @@ class LampSCryptoGate6 extends Plugin
     {
         $this->setPaymentMethodsIsActive(false, $context->getContext());
         parent::deactivate($context);
+    }
+
+    public function postUpdate(UpdateContext $updateContext): void
+    {
+        $this->checkIntegration();
+    }
+
+    private function checkIntegration() {
+        try {
+            /**
+             * @var $cryptoPayment CryptoPayment
+             */
+            $cryptoPayment = $this->container->get("Lampsolutions\\LampSCryptoGate6\\Service\\CryptoPayment");
+
+            if($cryptoPayment && $cryptoPayment->hasCredentials()) {
+                return $cryptoPayment->testPayment();
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     private function getConfig()

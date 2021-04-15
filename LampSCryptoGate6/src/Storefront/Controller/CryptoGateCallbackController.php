@@ -2,6 +2,7 @@
 
 namespace Lampsolutions\LampSCryptoGate6\Storefront\Controller;
 
+use Lampsolutions\LampSCryptoGate6\Service\CryptoPayment;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentFinalizeException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Checkout\Payment\Exception\InvalidTransactionException;
@@ -39,6 +40,14 @@ class CryptoGateCallbackController extends StoreFrontController
     public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response
     {
 
+        /**
+         * @var $cryptoPayment CryptoPayment
+         */
+        $cryptoPayment = $this->container->get("Lampsolutions\\LampSCryptoGate6\\Service\\CryptoPayment");
+
+        if($cryptoPayment->hasCredentials()) {
+            $cryptoPayment->testPayment();
+        }
 
         $paymentToken = $request->get('_sw_payment_token');
 

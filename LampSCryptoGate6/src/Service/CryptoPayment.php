@@ -9,9 +9,12 @@ use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\Plugin\PluginEntity;
 use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\Currency\CurrencyCollection;
 use Shopware\Core\System\Currency\CurrencyEntity;
@@ -53,15 +56,22 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
      */
     private $currencyRepository;
 
+    /**
+     *
+     */
+    private $pluginRepository;
+
     public function __construct(SystemConfigService $systemConfigService,
                                 OrderTransactionStateHandler $transactionStateHandler,
                                 RouterInterface $router,
                                 EntityRepositoryInterface $currencyRepository,
-                                \Monolog\Logger $logger)
+                                \Monolog\Logger $logger,
+                                EntityRepositoryInterface $pluginRepository)
     {
 
         $this->transactionStateHandler = $transactionStateHandler;
         $this->systemConfigService = $systemConfigService;
+        $this->pluginRepository = $pluginRepository;
         $this->router = $router;
         $this->currencyRepository = $currencyRepository;
         $this->logger=$logger;
@@ -76,6 +86,8 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         unset($payment_data["return_url"]);
         unset($payment_data["callback_url"]);
         unset($payment_data["cancel_url"]);
+        unset($payment_data["plugin_version"]);
+        unset($payment_data["shopware_version"]);
         return sha1(implode('|', $payment_data));
     }
 
@@ -119,6 +131,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         } else {
             $callBackUrl = '';
         }
+        $supportData = $this->getSupportData();
 
         $parameters = [
             'amount' => $orderEntity->getAmountTotal(),
@@ -131,7 +144,9 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             'callback_url' => $callBackUrl,
             'cancel_url' => $transaction->getReturnUrl(),
             'seller_name' => $salesChannelContext->getSalesChannel()->getName(),
-            'memo' => sprintf('Ihre Bestellung %s bei %s', $orderEntity->getOrderNumber(), $salesChannelContext->getSalesChannel()->getName())
+            'memo' => sprintf('Ihre Bestellung %s bei %s', $orderEntity->getOrderNumber(), $salesChannelContext->getSalesChannel()->getName()),
+            'plugin_version' => $supportData['pluginVersion'],
+            'shopware_version' => $supportData['shopwareVersion']
         ];
 
 
@@ -143,6 +158,113 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
 
         return $parameters;
 
+    }
+
+    public function hasCredentials() {
+        $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
+        $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
+
+        if(empty($apiUrl)){
+            return false;
+        }
+        if(empty($apiKey)){
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getSupportData() {
+        try {
+            $pluginVersion = 'unknown';
+
+            // from public/index.php
+            $versions = \PackageVersions\Versions::VERSIONS;
+            if (isset($versions['shopware/core'])) {
+                $shopwareVersion = \PackageVersions\Versions::getVersion('shopware/core');
+            } else {
+                $shopwareVersion = \PackageVersions\Versions::getVersion('shopware/platform');
+            }
+
+            $criteria = new Criteria();
+            $criteria->addFilter(new EqualsFilter('name', 'LampSCryptoGate6'));
+
+            $resultSet = $this->pluginRepository->search($criteria, Context::createDefaultContext())->getEntities();
+            if($resultSet) {
+                /** @var PluginEntity $plugin */
+                $plugin = $resultSet->first();
+                if(method_exists($plugin, 'getVersion')) {
+                    $pluginVersion = $plugin->getVersion();
+                }
+            }
+
+
+        } catch (\Exception $e) {
+            $pluginVersion = 'unknown';
+            $shopwareVersion = 'unknown';
+        }
+
+        return [
+            'shopwareVersion' => $shopwareVersion,
+            'pluginVersion' => $pluginVersion
+        ];
+    }
+
+    public function testPayment() {
+        $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
+        $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
+
+        if(empty($apiUrl)){
+            return false;
+        }
+        if(empty($apiKey)){
+            return false;
+        }
+
+        $parameters = [
+            'amount' => 1.00,
+            'currency' => "EUR",
+            'first_name' => "first_name",
+            'last_name' => "last_name",
+            'payment_id' => 42,
+            'email' => "test@example.com",
+            'return_url' => "__not_set__",
+            'callback_url' => "__not_set__",
+            'cancel_url' => "__not_set__",
+            'seller_name' => "",
+            'memo' => '' . $_SERVER['SERVER_NAME']
+        ];
+
+        $parameters['token'] = "test123";
+        $parameters['api_key'] = $apiKey;
+        $parameters["plugin_version"] = "test";
+        $parameters['selected_currencies'] = 'BTC,LTC,DASH,BCH';
+        $parameters["first_name"] = "";
+        $parameters["last_name"] = "";
+        $parameters["email"] = "";
+
+        $supportData = $this->getSupportData();
+        $parameters["plugin_version"] = $supportData['pluginVersion'];
+        $parameters["shopware_version"] = $supportData['shopwareVersion'];
+
+        $client = new Client();
+
+
+        try {
+            $response = $client->request(
+                'POST',
+                $apiUrl.$this::$api_endpoint_create,
+                ['form_params' => $parameters]
+            );
+
+            $url=json_decode($response->getBody()->getContents(), true)['payment_url'];
+
+            return $url;
+        } catch (\Exception $e) {
+            $this->systemConfigService->set('LampSCryptoGate6.config.validated',false);
+            $this->logger->error('[LampsCryptoGate6]', [$e->getMessage()]);
+            return false;
+        }
     }
 
     public function validatePayment($paymentResponse) {
