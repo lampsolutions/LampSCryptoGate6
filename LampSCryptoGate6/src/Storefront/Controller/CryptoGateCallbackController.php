@@ -39,16 +39,6 @@ class CryptoGateCallbackController extends StoreFrontController
      */
     public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response
     {
-
-        /**
-         * @var $cryptoPayment CryptoPayment
-         */
-        $cryptoPayment = $this->container->get("Lampsolutions\\LampSCryptoGate6\\Service\\CryptoPayment");
-
-        if($cryptoPayment->hasCredentials()) {
-            $cryptoPayment->testPayment();
-        }
-
         $paymentToken = $request->get('_sw_payment_token');
 
         $paymentTokenStruct = $this->paymentService->finalizeTransaction($paymentToken, $request, $salesChannelContext);
