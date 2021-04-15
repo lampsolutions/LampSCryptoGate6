@@ -2,7 +2,6 @@
 
 namespace Lampsolutions\LampSCryptoGate6\Storefront\Controller;
 
-use Lampsolutions\LampSCryptoGate6\Service\CryptoPayment;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentFinalizeException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Checkout\Payment\Exception\InvalidTransactionException;
@@ -37,16 +36,11 @@ class CryptoGateCallbackController extends StoreFrontController
     /**
      * @Route("/cryptogate/callback", name="frontend.checkout.cryptogatecallback", defaults={"auth_required"=false,"csrf_protected"=false}, options={"seo"="false"}, methods={"POST","GET"})
      */
-    public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response
-    {
+    public function finalizeTransaction(Request $request, SalesChannelContext $salesChannelContext): Response {
+
         $paymentToken = $request->get('_sw_payment_token');
+        $this->paymentService->finalizeTransaction($paymentToken, $request, $salesChannelContext);
 
-        $paymentTokenStruct = $this->paymentService->finalizeTransaction($paymentToken, $request, $salesChannelContext);
-
-        if ($paymentTokenStruct->getFinishUrl()) {
-            return new RedirectResponse($paymentTokenStruct->getFinishUrl());
-        }
-
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return new JsonResponse(['status' => 'OK'], Response::HTTP_OK);
     }
 }

@@ -18,7 +18,22 @@
                 <argument type="service" id="service_container"/>
             </call>
         </service>
+
+        <service id="Lampsolutions\LampSCryptoGate6\Storefront\Controller\CryptoGateController" public="true">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\CryptoPayment"/>
+
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService">
+            <argument type="service" id="Shopware\Core\Checkout\Payment\Cart\Token\JWTFactoryV2"/>
+            <argument type="service" id="logger"/>
+        </service>
+
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPayment" public="true">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
@@ -28,6 +43,7 @@
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBtc">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
@@ -37,6 +53,7 @@
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentLtc">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
@@ -46,6 +63,7 @@
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentDash">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>
@@ -55,6 +73,7 @@
             <tag name="shopware.payment.method.async" />
         </service>
         <service id="Lampsolutions\LampSCryptoGate6\Service\CryptoPaymentBch">
+            <argument type="service" id="Lampsolutions\LampSCryptoGate6\Service\SwPaymentService"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler"/>
             <argument type="service" id="router.default"/>

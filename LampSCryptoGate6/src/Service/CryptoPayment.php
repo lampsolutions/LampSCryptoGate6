@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStateHandler;
 use Shopware\Core\Checkout\Payment\Cart\AsyncPaymentTransactionStruct;
 use Shopware\Core\Checkout\Payment\Cart\PaymentHandler\AsynchronousPaymentHandlerInterface;
+use Shopware\Core\Checkout\Payment\Cart\Token\TokenStruct;
 use Shopware\Core\Checkout\Payment\Exception\AsyncPaymentProcessException;
 use Shopware\Core\Checkout\Payment\Exception\CustomerCanceledAsyncPaymentException;
 use Shopware\Core\Defaults;
@@ -57,11 +58,22 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
     private $currencyRepository;
 
     /**
+     * @var SwPaymentService
+     */
+    private $swPaymentService;
+
+    /**
+     * @var EntityRepositoryInterface
+     */
+    private $orderTransactionRepository;
+
+    /**
      *
      */
     private $pluginRepository;
 
-    public function __construct(SystemConfigService $systemConfigService,
+    public function __construct(SwPaymentService $swPaymentService,
+                                SystemConfigService $systemConfigService,
                                 OrderTransactionStateHandler $transactionStateHandler,
                                 RouterInterface $router,
                                 EntityRepositoryInterface $currencyRepository,
@@ -75,16 +87,17 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         $this->router = $router;
         $this->currencyRepository = $currencyRepository;
         $this->logger=$logger;
+        $this->swPaymentService = $swPaymentService;
     }
 
     /**
      * @param array $payment_data
      * @return string
      */
-    public function createPaymentToken($payment_data)
-    {
+    public function createPaymentToken($payment_data) {
         unset($payment_data["return_url"]);
         unset($payment_data["callback_url"]);
+        unset($payment_data["ipn_url"]);
         unset($payment_data["cancel_url"]);
         unset($payment_data["plugin_version"]);
         unset($payment_data["shopware_version"]);
@@ -127,7 +140,16 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
 
         if(!empty($transaction->getReturnUrl())) {
             parse_str(parse_url($transaction->getReturnUrl(), PHP_URL_QUERY), $returnQuery);
-            $callBackUrl = $this->router->generate('frontend.checkout.cryptogatecallback', $returnQuery, 0);
+
+            try {
+                $callBackToken = $this->swPaymentService->buildCallbackPaymentToken($returnQuery['_sw_payment_token']);
+                $returnQuery['_sw_payment_token'] = $callBackToken;
+
+                $callBackUrl = $this->router->generate('frontend.checkout.cryptogatecallback', $returnQuery, 0);
+                $returnUrl = $this->router->generate('frontend.checkout.cryptogatecallback', $returnQuery, 0);
+            } catch (\Exception $e) {
+                $this->logger->error('[LampSCryptogate getCryptoGatePaymentData] Could not built callback payment token'.$e->getMessage());
+            }
         } else {
             $callBackUrl = '';
         }
@@ -142,6 +164,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             'email' => $orderEntity->getOrderCustomer()->getEmail(),
             'return_url' => $transaction->getReturnUrl(),
             'callback_url' => $callBackUrl,
+            'ipn_url' => $callBackUrl,
             'cancel_url' => $transaction->getReturnUrl(),
             'seller_name' => $salesChannelContext->getSalesChannel()->getName(),
             'memo' => sprintf('Ihre Bestellung %s bei %s', $orderEntity->getOrderNumber(), $salesChannelContext->getSalesChannel()->getName()),
@@ -267,7 +290,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         }
     }
 
-    public function validatePayment($paymentResponse) {
+    public function validatePayment(&$paymentResponse) {
         $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
 
@@ -281,7 +304,6 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             return false;
 
         }
-
 
         $parameters = [
             'uuid' => $paymentResponse['transactionId'],
@@ -301,6 +323,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             $verify = json_decode($response->getBody()->getContents(), true);
 
             if($verify['token'] == $paymentResponse['token'] && !empty($paymentResponse['token']) && !empty($verify['token'])) {
+                $paymentResponse['inBlock'] = $verify['inBlock'];
                 return true;
             }
             $this->logger->error('[LampSCryptogate validatePaypent] wrong token');
@@ -313,7 +336,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         }
     }
 
-    public function createPaymentUrl($parameters,$version) {
+    public function createPayment($parameters,$version) {
         $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
         $transmitCustomerData = (bool) $this->systemConfigService->get('LampSCryptoGate6.config.transmitCustomerData');
@@ -356,11 +379,16 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
                 ['form_params' => $parameters]
             );
 
-            return json_decode($response->getBody()->getContents(), true)['payment_url'];
-        }catch (GuzzleException $e) {
+            return \json_decode($response->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
             $this->logger->error('[LampsCryptoGate6]', [$e->getMessage()]);
             return false;
         }
+    }
+
+    public function buildPaymentUrlByUuid($uuid) {
+        $apiUrl = rtrim($this->systemConfigService->get('LampSCryptoGate6.config.apiUrl'), "/");
+        return $apiUrl.'/payments/'.urlencode($uuid);
     }
 
     /**
@@ -381,14 +409,16 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
                 );
             }
 
-            $redirectUrl = $this->createPaymentUrl($paymentData, $salesChannelContext->getContext()->getVersionId());
-            if(!$redirectUrl){
+            $cryptoPayment = $this->createPayment($paymentData, $salesChannelContext->getContext()->getVersionId());
+
+
+            if(!$cryptoPayment['payment_url']){
                 throw new AsyncPaymentProcessException(
                     $transaction->getOrderTransaction()->getId(),
                     'An error occurred during the communication with external payment gateway' . PHP_EOL
                 );
             }
-            if(!empty($this->currency)) $redirectUrl.='/'.$this->currency;
+            if(!empty($this->currency)) $cryptoPayment['payment_url'].='/'.$this->currency;
 
         } catch (\Exception $e) {
             throw new AsyncPaymentProcessException(
@@ -397,8 +427,18 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             );
         }
 
-        // Redirect to external gateway
-        return new RedirectResponse($redirectUrl);
+
+        $payIframe = $this->systemConfigService->get('LampSCryptoGate6.config.payIframe');
+
+        if($payIframe) {
+            // Redirect to external gateway
+            return new RedirectResponse(
+                $this->router->generate('frontend.checkout.gate', ['uuid' => $cryptoPayment['uuid']], 0)
+            );
+        } else {
+            // Redirect to external gateway
+            return new RedirectResponse($cryptoPayment['payment_url']);
+        }
     }
 
     /**
@@ -416,24 +456,41 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             'transactionId' => $request->query->get('uuid'),
             'status' => $request->query->get('status'),
             'token' => $request->query->get('token'),
+            'inBlock' => 0
         ];
 
 
         $context = $salesChannelContext->getContext();
         if($this->isValidToken($paymentResponse['token'], $paymentToken)) {
             if($this->validatePayment($paymentResponse)) {
-                if($transaction->getOrderTransaction()->getStateMachineState()->getTechnicalName()=="open") {
-                    $this->transactionStateHandler->paid($transaction->getOrderTransaction()->getId(), $context);
+                $transactionStateMethod = $paymentResponse['inBlock'] ? $this->getPaymentStatusInBlock() : $this->getPaymentStatusMemPool();
+
+                if($transactionStateMethod == $transaction->getOrderTransaction()->getStateMachineState()->getTechnicalName()) {
+                    return;
+                }
+
+                if($transaction->getOrderTransaction()->getStateMachineState()->getTechnicalName()=="open" || $transaction->getOrderTransaction()->getStateMachineState()->getTechnicalName()=="in_progress") {
+                    $this->transactionStateHandler->$transactionStateMethod($transaction->getOrderTransaction()->getId(), $context);
                 }
                 return;
             }
         }
     }
 
-    public function isValidToken($response_token, $token)
-    {
+    public function isValidToken($response_token, $token) {
         return hash_equals($token, $response_token);
     }
 
+    public function getPaymentStatusMemPool() {
+        $waitInBlock = $this->systemConfigService->get('LampSCryptoGate6.config.waitInBlock');
+        if($waitInBlock===true) {
+            return 'process';
+        }
+        return 'paid';
+    }
+
+    public function getPaymentStatusInBlock() {
+        return 'paid';
+    }
 
 }

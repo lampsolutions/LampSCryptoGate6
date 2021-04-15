@@ -32,6 +32,23 @@
             <helpText lang="de-DE">Benötigt unter Umständen einen Auftragsdatenverarbeitungsvertrag (=AVV) von Deinem Dienstleister. Solltest Du das CryptoPanel nutzen, kannst Du den AVV bei www.cryptopanel.de abschließen.</helpText>
         </input-field>
 
+
+        <input-field type="bool">
+            <name>waitInBlock</name>
+            <label>Double Spend Protection</label>
+            <label lang="de-DE">Double spend Schutz</label>
+            <helpText>The payment is not considered "completely paid" until the transaction has been stored in the blockchain (recommended).</helpText>
+            <helpText lang="de-DE">Die Zahlung gilt erst als komplett bezahlt, wenn die Transaktion in der Blockchain gespeichert wurde (empfohlen).</helpText>
+        </input-field>
+
+        <input-field type="bool">
+            <name>payIframe</name>
+            <label>Iframe payment page</label>
+            <label lang="de-DE">Iframe Zahlseite</label>
+            <helpText>Integrate the payment page as an iframe on the website</helpText>
+            <helpText lang="de-DE">Die Zahlseite als Iframe auf der Webseite integrieren</helpText>
+        </input-field>
+
         <input-field type="bool">
             <name>validated</name>
             <label>You can test your credentials under settings -> plugins -> LampSCryptoGate</label>
