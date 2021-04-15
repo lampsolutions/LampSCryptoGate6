@@ -233,9 +233,6 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         ];
     }
 
-    public function validatePayment(&$paymentResponse) {
-
-
     public function testPayment() {
         $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
@@ -293,7 +290,7 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
         }
     }
 
-    public function validatePayment($paymentResponse) {
+    public function validatePayment(&$paymentResponse) {
         $apiUrl = $this->systemConfigService->get('LampSCryptoGate6.config.apiUrl');
         $apiKey = $this->systemConfigService->get('LampSCryptoGate6.config.apiToken');
 
@@ -307,7 +304,6 @@ class CryptoPayment implements AsynchronousPaymentHandlerInterface
             return false;
 
         }
-
 
         $parameters = [
             'uuid' => $paymentResponse['transactionId'],
