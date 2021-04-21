@@ -21,7 +21,11 @@ class CredentialsController extends AbstractController {
      */
     private $systemConfigService;
 
-    public function __construct() { }
+    public function __construct(SystemConfigService $systemConfigService)
+    {
+        $this->systemConfigService = $systemConfigService;
+    }
+
 
     /**
      * @Route("/api/v{version}/_action/cryptogate/checkCredentials", name="api.action.cryptogatecheckCredentials", methods={"GET"})

@@ -82,5 +82,8 @@
             <argument type="service" id="plugin.repository" />
             <tag name="shopware.payment.method.async" />
         </service>
+        <service id="Lampsolutions\LampSCryptoGate6\Controller\CredentialsController" public="true">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
     </services>
 </container>
